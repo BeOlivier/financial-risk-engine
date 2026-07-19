@@ -2,12 +2,12 @@
 
 import argparse
 import sys
-import tomllib
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from risk_engine import __version__
-from risk_engine.config import validate_toml_file
+from risk_engine.config import load_config
+from risk_engine.exceptions import ConfigurationError
 
 CommandHandler = Callable[[argparse.Namespace], int]
 
@@ -19,37 +19,19 @@ def handle_version(_: argparse.Namespace) -> int:
 
 
 def handle_config_check(args: argparse.Namespace) -> int:
-    """Validate that a configuration file is readable TOML."""
+    """Load, validate, and summarize a runtime configuration file."""
     config_path: Path = args.config
 
     try:
-        validate_toml_file(config_path)
-    except FileNotFoundError:
-        print(
-            f"error: configuration file not found: {config_path}",
-            file=sys.stderr,
-        )
-        return 1
-    except IsADirectoryError:
-        print(
-            f"error: configuration path is not a file: {config_path}",
-            file=sys.stderr,
-        )
-        return 1
-    except PermissionError:
-        print(
-            f"error: configuration file cannot be read: {config_path}",
-            file=sys.stderr,
-        )
-        return 1
-    except tomllib.TOMLDecodeError as error:
-        print(
-            f"error: invalid TOML in {config_path}: {error}",
-            file=sys.stderr,
-        )
+        config = load_config(config_path)
+    except ConfigurationError as error:
+        print(f"error: {error}", file=sys.stderr)
         return 1
 
-    print(f"Configuration is valid TOML: {config_path}")
+    print(f"Configuration is valid: {config_path}")
+    print(f"Project: {config.project.name}")
+    print(f"Logging level: {config.logging.level}")
+    print(f"Output directory: {config.output.directory}")
     return 0
 
 
@@ -75,10 +57,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     config_parser = subparsers.add_parser(
         "config-check",
-        help="Check whether a configuration file contains valid TOML.",
+        help="Validate and summarize a runtime configuration file.",
         description=(
-            "Verify that a configuration path exists, is readable, "
-            "and contains syntactically valid TOML."
+            "Load a TOML configuration file, validate its supported settings, "
+            "and display a concise summary."
         ),
     )
     config_parser.add_argument(
