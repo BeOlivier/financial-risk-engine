@@ -1,0 +1,8 @@
+[project]
+name = "Example Portfolio Analysis"
+
+[logging]
+level = "INFO"
+
+[output]
+directory = "outputs"
