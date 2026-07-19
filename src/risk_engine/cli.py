@@ -1,6 +1,7 @@
 """Command-line interface for the financial risk engine."""
 
 import argparse
+import logging
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -8,7 +9,9 @@ from pathlib import Path
 from risk_engine import __version__
 from risk_engine.config import load_config
 from risk_engine.exceptions import ConfigurationError
+from risk_engine.logging_config import configure_logging
 
+logger = logging.getLogger(__name__)
 CommandHandler = Callable[[argparse.Namespace], int]
 
 
@@ -27,6 +30,11 @@ def handle_config_check(args: argparse.Namespace) -> int:
     except ConfigurationError as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
+
+    configure_logging(config.logging.level)
+
+    logger.info("Loaded runtime configuration from %s", config_path)
+    logger.info("Selected project: %s", config.project.name)
 
     print(f"Configuration is valid: {config_path}")
     print(f"Project: {config.project.name}")
