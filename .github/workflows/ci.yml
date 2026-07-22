@@ -1,24 +1,65 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  foundation:
-    name: Foundation check
+  quality:
+    name: Quality checks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Confirm workflow execution
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14.6"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Display environment
         run: |
-          echo "GitHub Actions is working."
-          echo "Repository: $GITHUB_REPOSITORY"
-          echo "Branch or ref: $GITHUB_REF"
-          pwd
-          ls -la
+          python --version
+          python -m pip --version
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install project and development dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run pre-commit checks
+        run: pre-commit run --all-files
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Type check
+        run: mypy src/risk_engine
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Build package
+        run: python -m build
+
+      - name: Verify CLI version command
+        run: risk-engine version
+
+      - name: Verify example configuration
+        run: risk-engine config-check --config configs/example.toml
