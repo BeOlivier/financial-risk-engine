@@ -1,7 +1,6 @@
 """Command-line interface for the financial risk engine."""
 
 import argparse
-import json
 import logging
 import sys
 from collections.abc import Callable, Sequence
