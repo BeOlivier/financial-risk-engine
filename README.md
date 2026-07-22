@@ -67,3 +67,5 @@ Project: Example Portfolio Analysis
 Logging level: INFO
 Output directory: outputs
 ```
+
+<!-- Temporary main-protection test -->
