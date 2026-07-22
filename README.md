@@ -1,4 +1,7 @@
 # financial-risk-engine
+
+[![CI](https://github.com/BeOlivier/financial-risk-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/BeOlivier/financial-risk-engine/actions/workflows/ci.yml)
+
 Portfolio analytics and financial risk modelling toolkit.
 
 ## Runtime configuration
